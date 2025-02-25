@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Alkitab")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+476b98db2908a3fd98f1e6f8af0c11e80d8e7f16")]
 [assembly: System.Reflection.AssemblyProductAttribute("Alkitab")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Alkitab")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
