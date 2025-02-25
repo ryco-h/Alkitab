@@ -1,0 +1,23 @@
+<Application xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+    x:Class="Alkitab.App"
+    xmlns:local="using:Alkitab"
+    xmlns:utils="clr-namespace:Alkitab.Converters"
+    RequestedThemeVariant="Default">
+    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+  
+    <Application.Styles>
+        <FluentTheme />
+        <dialogHostAvalonia:DialogHostStyles />
+    </Application.Styles>
+
+    <Application.Resources>
+        <FontFamily x:Key="Delicious">avares://Alkitab/Assets/Delicious.ttf#Delicious</FontFamily>
+        <utils:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </Application.Resources>
+</Application>
