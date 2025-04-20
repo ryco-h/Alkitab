@@ -1,143 +1,298 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Alkitab.ViewModels"
+        xmlns:vm="clr-namespace:Alkitab.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Alkitab.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        xmlns:views="clr-namespace:Alkitab.Views"
         Icon="/Assets/bible.ico"
         Background="#474747"
         MinWidth="1024" MinHeight="420"
+        Opened="OnWindowOpened"
         Title="Alkitab">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
+        <vm:MainWindowViewModel />
     </Design.DataContext>
+
+    <Window.Styles>
+        <Style Selector="ListBox.ScrollBible > ListBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+
+            <!-- <Setter Property="Template"> -->
+            <!--     <ControlTemplate> -->
+            <!--         <Border Background="{TemplateBinding Background}"> -->
+            <!--             ~1~ This ensures that the ItemTemplate is rendered @1@ -->
+            <!--             <ContentPresenter Content="{TemplateBinding Content}" -->
+            <!--                               ContentTemplate="{TemplateBinding ContentTemplate}" /> -->
+            <!--         </Border> -->
+            <!--     </ControlTemplate> -->
+            <!-- </Setter> -->
+        </Style>
+
+        <!-- Style for selected ListBoxItem -->
+        <Style Selector="ListBoxItem:selected">
+            <Setter Property="Background" Value="Gray" />
+            <Setter Property="BorderBrush" Value="Black" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <!-- Style for pointerover ListBoxItem -->
+        <Style Selector="ListBoxItem:pointerover">
+            <Setter Property="Background" Value="Gray" />
+        </Style>
+    </Window.Styles>
 
     <Window.Resources>
         <StackPanel Background="Transparent" x:Key="SearchBible" MinWidth="640" Margin="20">
-                    <!-- Select Box -->
-                    <AutoCompleteBox
+            <StackPanel Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="20"
+                    FontFamily="{StaticResource Poetsen}">
+                    Kitab
+                </TextBlock>
+                <TextBlock Text="&#x9;" />
+                
+                <AutoCompleteBox
+                    FontFamily="{StaticResource Poetsen}"
                     x:Name="autoCompleteBox"
+                    VerticalAlignment="Bottom"
+                    BorderThickness="0"
                     MinimumPrefixLength="0"
                     MaxDropDownHeight="300"
-                    IsTextCompletionEnabled="True" Width="200" ItemsSource="{Binding DaftarKitab}"/>
-                    
-                    <!-- Book and Verse Number -->
+                    Width="200"
+                    ItemsSource="{Binding BookList}"
+                    Text="{Binding BibleInstances.BookNameText, Mode=TwoWay}"
+                    SelectedItem="{Binding BibleInstances.BookName, Mode=TwoWay}">
+                    <AutoCompleteBox.Styles>
+                        <Style Selector="TextBox">
+                            <Setter Property="Padding" Value="5,0,5,0" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                        </Style>
+                    </AutoCompleteBox.Styles>
+                </AutoCompleteBox>
+            </StackPanel>
 
-                    <StackPanel Spacing="10" MinHeight="200" Orientation="Horizontal" HorizontalAlignment="Center"> 
-                        <Border 
-                        HorizontalAlignment="Center" 
-                        VerticalAlignment="Center" 
-                        Background="Transparent"
-                        BorderThickness="2"
-                        BorderBrush="Brown"
-                        Width="80" Height="80" CornerRadius="50" >
-                            <TextBlock
-                            TextDecorations="Underline"
-                            FontSize="50" 
-                            FontFamily="{StaticResource Delicious}"
-                            TextAlignment="Center"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center" 
-                            Padding="0 3 0 0"
-                            Text="115"/>    
-                        </Border>
+            <!-- Book and Verse Number -->
+            <StackPanel Margin="0 10 0 0" Spacing="10" MinHeight="100" Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="20"
+                    FontFamily="{StaticResource Poetsen}">
+                    Pasal
+                </TextBlock>
 
-                        <Border 
-                        HorizontalAlignment="Center" 
-                        VerticalAlignment="Center" 
-                        Background="Transparent"
-                        BorderThickness="2"
-                        BorderBrush="Brown"
-                        Width="80" Height="80" CornerRadius="50" >
-                            <TextBlock 
-                            TextDecorations="Underline"
-                            FontSize="50"
-                            FontFamily="{StaticResource Delicious}"
-                            HorizontalAlignment="Center"
+                <Border
+                    Background="{Binding ToggleState.Target, Converter={StaticResource ActiveStateConverter}, ConverterParameter=pasal, TargetNullValue=Transparent}"
+                    x:Name="pasalToggle"
+                    Tag="pasal"
+                    Cursor="Hand"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BorderBrush="White"
+                    BorderThickness="1"
+                    Width="60" Height="60" CornerRadius="50">
+                    <Interaction.Behaviors>
+                        <EventTriggerBehavior EventName="PointerPressed" SourceObject="pasalToggle">
+                            <InvokeCommandAction Command="{Binding TogglePasalAyat}" CommandParameter="pasal" />
+                        </EventTriggerBehavior>
+                    </Interaction.Behaviors>
+                    <TextBlock
+                        FontSize="30"
+                        FontFamily="{StaticResource Poetsen}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Text="{Binding ToggleState.PasalText}" />
+                </Border>
+
+                <TextBlock Text="&#x9;" />
+
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="20"
+                    FontFamily="{StaticResource Poetsen}">
+                    Ayat
+                </TextBlock>
+
+                <Border
+                    Background="{Binding ToggleState.Target, Converter={StaticResource ActiveStateConverter}, ConverterParameter=ayat, TargetNullValue=Transparent}"
+                    x:Name="ayatToggle"
+                    Tag="ayat"
+                    Cursor="Hand"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BorderBrush="White"
+                    BorderThickness="1"
+                    Width="60" Height="60" CornerRadius="50">
+                    <Interaction.Behaviors>
+                        <EventTriggerBehavior EventName="PointerPressed" SourceObject="ayatToggle">
+                            <InvokeCommandAction Command="{Binding TogglePasalAyat}" CommandParameter="ayat" />
+                        </EventTriggerBehavior>
+                    </Interaction.Behaviors>
+                    <TextBlock
+                        FontSize="30"
+                        FontFamily="{StaticResource Poetsen}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Text="{Binding ToggleState.AyatText}" />
+                </Border>
+            </StackPanel>
+
+            <ItemsControl ItemsSource="{Binding Numbers}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid
+                            Columns="3"
                             VerticalAlignment="Center"
-                            Text="115"/>    
-                        </Border>
-                    </StackPanel>
-                    
-                    <Button Margin="0 16 0 0"
+                            HorizontalAlignment="Center" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:NumberItemViewModel">
+                        <Button
+                            Cursor="Hand"
+                            Margin="5"
+                            CornerRadius="50"
+                            IsEnabled="{Binding Value.Length, Converter={StaticResource IsNotEmptyConverter}}"
+                            Command="{Binding ClickCommand}"
+                            CommandParameter="{Binding Value}">
+                            <Button.Styles>
+                                <Style Selector="Button">
+                                    <Setter Property="IsVisible"
+                                            Value="{Binding ., Converter={StaticResource IsNotEmptyConverter}}" />
+                                </Style>
+                            </Button.Styles>
+                            <Border
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                Width="40" Height="40" CornerRadius="50">
+                                <TextBlock
+                                    FontSize="20"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="{StaticResource Poetsen}"
+                                    Text="{Binding Value}" />
+                            </Border>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Button Margin="0 16 0 0"
                     Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=dialogHost:DialogHost}, Path=CloseDialogCommand}">
-                        Tutup   
-                    </Button>
-                </StackPanel>
+                Tutup
+            </Button>
+        </StackPanel>
     </Window.Resources>
 
     <dialogHost:DialogHost
-    DialogMargin="3"
-    Background="#474747"
-    dialogHost:DialogHostStyle.CornerRadius="10"
-    IsOpen="{Binding IsLoading}"
-    Identifier="MainDialogHost" CloseOnClickAway="True" DisableOpeningAnimation="True">
-        <StackPanel>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height=".2*"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Border Grid.Row="0" BorderBrush="Black" BorderThickness="0, 0, 0, 3" Padding="10">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width=".4*"/> <!-- 50% -->
-                            <ColumnDefinition Width="1*"/> <!-- 50% -->
-                            <ColumnDefinition Width=".4*"/> <!-- 50% -->
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0">
+        DialogMargin="3"
+        Background="#474747"
+        dialogHost:DialogHostStyle.CornerRadius="10"
+        IsOpen="{Binding IsLoading}"
+        Identifier="MainDialogHost" CloseOnClickAway="True" DisableOpeningAnimation="True">
+        <Grid RowDefinitions="Auto,Auto,*">
+            <Border Grid.Row="0" BorderBrush="Black" BorderThickness="0, 0, 0, 1" Padding="10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width=".4*" /> <!-- 50% -->
+                        <ColumnDefinition Width="1*" /> <!-- 50% -->
+                        <ColumnDefinition Width=".4*" /> <!-- 50% -->
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Padding="10">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Spacing="20">
                             <Border>
-                                <Image x:Name="BibleImage" 
-                                Source="/Assets/bookCW.png" 
-                                Width="64" Height="64"
-                                Cursor="Hand"
-                                ToolTip.Tip="Buka Alkitab"
-                                ToolTip.ShowDelay="0"
-                                ToolTip.Placement="Bottom"
-                                />
+                                <Image x:Name="BibleImage"
+                                       Source="/Assets/bookCW.png"
+                                       Width="64" Height="64"
+                                       Cursor="Hand"
+                                       ToolTip.Tip="Buka Alkitab"
+                                       ToolTip.ShowDelay="0"
+                                       ToolTip.Placement="Bottom" />
                             </Border>
-                        </Border>
-                        <Border Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock 
-                            FontSize="40" 
-                            FontFamily="{StaticResource Delicious}"
-                            Text="Alkitab"/>
-                        </Border>
-                        <Border Grid.Column="2">
+                            <Border HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontSize="30"
+                                    FontFamily="{StaticResource Poetsen}"
+                                    Text="Alkitab" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Version -->
+                    <Border Grid.Column="2">
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="20" FontFamily="{StaticResource Poetsen}">
+                                v0.9
+                            </TextBlock>
                             <Border>
-                                <Image x:Name="InfoImage" 
-                                Source="/Assets/infoW.png"
-                                Width="40" Height="40"
-                                Cursor="Hand"
-                                />
+                                <Image x:Name="InfoImage"
+                                       Source="/Assets/infoW.png"
+                                       Width="40" Height="40"
+                                       Cursor="Hand" />
                             </Border>
-                        </Border>
-                    </Grid>
-                </Border>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
 
-                <ScrollViewer Grid.Row="1" Background="Red" Margin="50">
-                    <StackPanel>
-                        <TextBlock Margin="5" Text="Test" FontSize="15"/>
+            <!-- Navigation Arrow -->
+            <Border
+                IsVisible="{Binding BibleInstances.SelectedBookName, Converter={StaticResource NavigationVisibility}}"
+                Grid.Row="1" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock FontSize="24" FontWeight="Bold">←</TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontFamily="{StaticResource Poetsen}"
+                                   Text="{Binding BibleInstances.SelectedBookName}" FontSize="20"
+                                   VerticalAlignment="Center" />
+                        <TextBlock FontFamily="{StaticResource Poetsen}" Text=" : " FontSize="20"
+                                   VerticalAlignment="Center" />
+                        <TextBlock FontFamily="{StaticResource Poetsen}" Text="{Binding ToggleState.Pasal}"
+                                   FontSize="20" VerticalAlignment="Center" />
                     </StackPanel>
-                </ScrollViewer>
-            </Grid>
-        </StackPanel>
+                    <TextBlock FontSize="24" FontWeight="Bold">→</TextBlock>
+                </StackPanel>
+            </Border>
+
+            <ScrollViewer x:Name="BibleScrollViewer" Margin="200 40 120 40" Grid.Row="2"
+                          VerticalScrollBarVisibility="Auto">
+                <ListBox x:Name="ScrollBible" Classes="ScrollBible" Background="Transparent"
+                         ItemsSource="{Binding FilteredBible}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="{Binding verse, Converter={StaticResource IndentationConverter}}">
+                                <Grid ColumnDefinitions="Auto,Auto,*" VerticalAlignment="Bottom">
+                                    <TextBlock Grid.Column="0" FontSize="18" Text="{Binding verse}" />
+                                    <TextBlock Grid.Column="1" FontSize="18" Text=". " />
+                                    <TextBlock Grid.Column="2"
+                                               FontFamily="{StaticResource NationalPark}"
+                                               FontSize="18"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding text}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </ScrollViewer>
+        </Grid>
     </dialogHost:DialogHost>
 
 </Window>
-
-<!-- <ComboBox IsTextSearchEnabled="True" x:Name="book_list" SelectedIndex="0" ItemsSource="{Binding DaftarKitab}"
-    Width="200" MaxDropDownHeight="300">
-    <ComboBox.ItemTemplate>
-        <DataTemplate>
-            <TextBlock Text="{Binding BookName}" FontFamily="{Binding}" />
-        </DataTemplate>
-    </ComboBox.ItemTemplate>
-</ComboBox> -->

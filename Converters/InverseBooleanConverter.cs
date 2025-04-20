@@ -1,8 +1,8 @@
-namespace Alkitab.Converters;
-
 using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
+
+namespace Alkitab.Converters;
 
 public class InverseBooleanConverter : IValueConverter
 {
@@ -14,13 +14,8 @@ public class InverseBooleanConverter : IValueConverter
         return null; // Ensure compatibility with nullability
     }
 
-    public object? ConvertBack(
-        object? value,
-        Type targetType,
-        object? parameter,
-        CultureInfo culture
-    )
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        throw new NotImplementedException(); // Not needed for one-way binding
+        throw new NotImplementedException();
     }
 }

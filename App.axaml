@@ -18,6 +18,16 @@
 
     <Application.Resources>
         <FontFamily x:Key="Delicious">avares://Alkitab/Assets/Delicious.ttf#Delicious</FontFamily>
+        <FontFamily x:Key="Doug">avares://Alkitab/Assets/WinkyRoug.ttf</FontFamily>
+        <FontFamily x:Key="Poetsen">avares://Alkitab/Assets/PoetsenOne.ttf#PoetsenOne</FontFamily>
+        <FontFamily x:Key="NationalPark">avares://Alkitab/Assets/NationalPark.ttf</FontFamily>
+
         <utils:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        <utils:IsNotEmptyConverter x:Key="IsNotEmptyConverter"/>
+        <utils:ActiveStateConverter x:Key="ActiveStateConverter"/>
+        <utils:VisibilityConverter x:Key="VisibilityConverter"/>
+        <utils:IndentationConverter x:Key="IndentationConverter"/>
+        <utils:HighlighterConverter x:Key="HighlighterConverter"/>
+        <utils:NavigationVisibility x:Key="NavigationVisibility"/>
     </Application.Resources>
 </Application>

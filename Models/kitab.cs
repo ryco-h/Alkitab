@@ -1,32 +1,36 @@
-using System.ComponentModel;
-
-public class Kitab : INotifyPropertyChanged
+namespace Alkitab.Models
 {
-    public int verse_id { get; set; }
-    private string? book_name;
+    using System.ComponentModel;
 
-    public string? BookName
+    public class Kitab : INotifyPropertyChanged
     {
-        get => book_name;
-        set
+        public int Index { get; set; }
+        public int verse_id { get; set; }
+        private string? book_name;
+
+        public string? BookName
         {
-            if (book_name != value)
+            get => book_name;
+            set
             {
-                book_name = value;
-                OnPropertyChanged(nameof(BookName)); // Ensure this triggers PropertyChanged
+                if (book_name != value)
+                {
+                    book_name = value;
+                    OnPropertyChanged(nameof(BookName));
+                }
             }
         }
-    }
-    public string? book { get; set; }
-    public string? chapter { get; set; }
-    public string? verse { get; set; }
-    public string? text { get; set; }
 
-    // Event to notify when a property has changed
-    public event PropertyChangedEventHandler? PropertyChanged;
+        public string? book { get; set; }
+        public string? chapter { get; set; }
+        public string? verse { get; set; }
+        public string? text { get; set; }
 
-    protected virtual void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

@@ -1,92 +1,144 @@
-﻿namespace Alkitab.ViewModels;
-
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
 using System.Threading.Tasks;
-using DialogHostAvalonia;
+using System.Windows.Input;
+using Alkitab.Models;
+using Alkitab.Services;
+using CommunityToolkit.Mvvm.Input;
+using ReactiveUI;
 
-public partial class MainWindowViewModel : ViewModelBase
+namespace Alkitab.ViewModels;
+
+public class MainWindowViewModel : ViewModelBase
 {
-    // public string Greeting { get; } = "Welcome to Avalonia!";
+    public BibleInstances BibleInstances => BibleInstancesService.Instance.BibleInstances;
+    public ObservableCollection<BibleInstances> BookList { get; } = new();
+    private IEnumerable<Kitab> _filteredBible;
 
-    // Property to hold the list of Kitab entities
-    public ObservableCollection<Kitab> KitabList { get; set; } = new ObservableCollection<Kitab>();
-    public ObservableCollection<DaftarKitab> DaftarKitab { get; set; } =
-        new ObservableCollection<DaftarKitab>();
+    public IEnumerable<Kitab> FilteredBible
+    {
+        get => _filteredBible;
+        set
+        {
+            _filteredBible = value;
+            OnPropertyChanged();
+        }
+    }
 
     // DatabaseManager instance
     private readonly DatabaseManager _databaseManager;
 
     private bool _isLoading;
+
     public bool IsLoading
     {
         get => _isLoading;
         set
         {
             _isLoading = value;
-            OnPropertyChanged(nameof(IsLoading));
+            OnPropertyChanged();
+        }
+    }
+
+    public ObservableCollection<NumberItemViewModel> Numbers { get; } = new();
+    private AsyncRelayCommand<string?> NumberClicked { get; }
+    public ICommand TogglePasalAyat { get; }
+
+    public ToggleState ToggleState => ToggleService.Instance.ToggleState;
+
+    private async Task NumberClickedAction(string? parameter)
+    {
+        if (parameter == "⌫")
+        {
+            ToggleState.PasalText = null;
+            ToggleState.AyatText = null;
+        }
+
+        else if (parameter == "\u2936" && BibleInstances.BookName != null)
+        {
+            ToggleState.Pasal = ToggleState.PasalText;
+            ToggleState.Ayat = ToggleState.AyatText;
+            BibleInstances.SelectedBookName = BibleInstances.BookNameText;
+            await FilterBible(BibleInstances.BookName, ToggleState.Pasal, ToggleState.Ayat);
+        }
+
+        else if (ToggleState.Target == "pasal")
+        {
+            if (ToggleState.PasalText is { Length: 3 }) return;
+
+            ToggleState.PasalText += parameter;
+        }
+
+        else if (ToggleState.Target == "ayat")
+        {
+            if (ToggleState.AyatText is { Length: 3 }) return;
+
+            ToggleState.AyatText += parameter;
         }
     }
 
     // Constructor
     public MainWindowViewModel()
     {
+        NumberClicked = new AsyncRelayCommand<string?>(NumberClickedAction);
+
+        TogglePasalAyat = ReactiveCommand.Create<string?>(Toggle_PasalAyat);
+        ToggleState.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ToggleState.Target))
+                // This is now in instance context — should work
+                OnPropertyChanged(nameof(ToggleState));
+        };
+
+        var numberStrings = new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "\u2936" };
+        foreach (var n in numberStrings) Numbers.Add(new NumberItemViewModel(n, NumberClicked));
+
         _databaseManager = new DatabaseManager();
         InitializeAsync();
     }
 
-    private async void InitializeAsync()
+    private void Toggle_PasalAyat(string? parameter)
     {
-        await LoadBible(); // Ensures this completes first
-        await LoadBookList();
-        GetProperties(); // Runs after all async tasks
-        Console.WriteLine(IsLoading ? "Loading..." : "Done...");
+        ToggleService.Instance.ToggleState.Target = parameter;
     }
 
-    public void GetProperties()
+    public event Action? BibleFiltered;
+
+    private async Task FilterBible(string bookName, string? pasal, string? ayat)
     {
-        // Get the Type object for Kitab
-        Type kitabType = typeof(Kitab);
+        FilteredBible = await _databaseManager.FilterBible(bookName, pasal);
 
-        // Get the properties of the Kitab class
-        PropertyInfo[] properties = kitabType.GetProperties();
-    }
-
-    // Method to load entities asynchronously
-    private async Task LoadBible()
-    {
-        if (IsLoading)
-            return; // Prevent duplicate calls
-        IsLoading = true;
-
-        Console.WriteLine(IsLoading ? "Loading..." : "Done...");
-
-        var bible = await _databaseManager.GetBible(); // Make sure this returns IEnumerable<Kitab>
-        if (bible != null)
-        {
-            foreach (var book in bible)
-            {
-                KitabList.Add(book); // Add each individual Kitab item to the ObservableCollection
-                Console.WriteLine(book);
-            }
-        }
+        OnPropertyChanged(nameof(FilteredBible));
+        BibleFiltered?.Invoke();
 
         IsLoading = false;
+        BibleInstances.BookName = "";
+        ToggleState.PasalText = null;
+        ToggleState.AyatText = null;
+    }
+
+    private async void InitializeAsync()
+    {
+        await LoadBookList();
+        GetProperties();
+    }
+
+    private void GetProperties()
+    {
+        // Get the Type object for Kitab
+        var kitabType = typeof(Kitab);
+
+        // Get the properties of the Kitab class
+        var properties = kitabType.GetProperties();
     }
 
     private async Task LoadBookList()
     {
-        var book_list = await _databaseManager.GetBookList(); // Make sure this returns IEnumerable<Kitab>
+        var bookList = await _databaseManager.GetBookList(); // Make sure this returns IEnumerable<Kitab>
 
-        if (book_list != null)
-        {
-            foreach (var book in book_list)
-            {
-                DaftarKitab.Add(book);
-            }
-        }
-
-        Console.WriteLine($"Final DaftarKitab count: {DaftarKitab.Count}");
+        if (bookList != null)
+            foreach (var book in bookList)
+                BookList.Add(book);
     }
 }
