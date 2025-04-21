@@ -14,7 +14,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     public BibleInstances BibleInstances => BibleInstancesService.Instance.BibleInstances;
     public ObservableCollection<BibleInstances> BookList { get; } = new();
-    private IEnumerable<Kitab> _filteredBible;
+    private IEnumerable<Kitab>? _filteredBible;
 
     public IEnumerable<Kitab> FilteredBible
     {
@@ -91,6 +91,8 @@ public class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(ToggleState));
         };
 
+        NavigateChapterCommand = ReactiveCommand.Create<object?>(NavigateChapter);
+
         var numberStrings = new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "\u2936" };
         foreach (var n in numberStrings) Numbers.Add(new NumberItemViewModel(n, NumberClicked));
 
@@ -117,28 +119,65 @@ public class MainWindowViewModel : ViewModelBase
         ToggleState.PasalText = null;
         ToggleState.AyatText = null;
     }
-
+    
+    // ============= Fetching Database Methods =============
     private async void InitializeAsync()
     {
         await LoadBookList();
-        GetProperties();
-    }
-
-    private void GetProperties()
-    {
-        // Get the Type object for Kitab
-        var kitabType = typeof(Kitab);
-
-        // Get the properties of the Kitab class
-        var properties = kitabType.GetProperties();
     }
 
     private async Task LoadBookList()
     {
-        var bookList = await _databaseManager.GetBookList(); // Make sure this returns IEnumerable<Kitab>
+        var bookList = await _databaseManager.GetBookList();
 
         if (bookList != null)
             foreach (var book in bookList)
                 BookList.Add(book);
+    }
+    
+    // ============= Navigation Methods =============
+    public ICommand NavigateChapterCommand { get; }
+
+    private async void NavigateChapter(object? parameter)
+    {
+        var bookName = parameter?.GetType().GetProperty("BookName")?.GetValue(parameter)?.ToString();
+        var pasal = parameter?.GetType().GetProperty("Pasal")?.GetValue(parameter)?.ToString();
+        var direction = parameter?.GetType().GetProperty("Direction")?.GetValue(parameter)?.ToString();
+
+        var bibleByBookName = bookName != null ? await _databaseManager.GetBibleByBook(bookName) : null;
+        var chapters = new List<string?>();
+        
+        foreach (var book in bibleByBookName)
+        {
+            if(!chapters.Contains(book.chapter))
+                chapters.Add(book.chapter);
+        }
+
+        var previous = pasal != null ? (int.Parse(pasal) - 1).ToString() : "null";
+        var next = pasal != null ? (int.Parse(pasal) + 1).ToString() : "null";
+        
+        if (direction == "left" && chapters.Contains(previous))
+        {
+            FilteredBible = await _databaseManager.FilterBible(bookName, previous);
+            ToggleState.Pasal = previous;
+
+            OnPropertyChanged(nameof(FilteredBible));
+            BibleFiltered?.Invoke();
+        }
+        else if (direction == "right" && chapters.Contains(next))
+        {
+            FilteredBible = await _databaseManager.FilterBible(bookName, next);
+            ToggleState.Pasal = next;
+
+            OnPropertyChanged(nameof(FilteredBible));
+            BibleFiltered?.Invoke();
+        } else
+        {
+            return;
+        }
+        
+        
+        Console.WriteLine(string.Join(", ", chapters));
+        Console.WriteLine("chapters => " + chapters);
     }
 }

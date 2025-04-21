@@ -10,8 +10,8 @@
         Icon="/Assets/bible.ico"
         Background="#474747"
         MinWidth="1024" MinHeight="420"
-        Opened="OnWindowOpened"
         Title="Alkitab">
+        <!-- Opened="OnWindowOpened" -->
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -239,7 +239,7 @@
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontSize="20" FontFamily="{StaticResource Poetsen}">
-                                v0.9
+                                v1.0
                             </TextBlock>
                             <Border>
                                 <Image x:Name="InfoImage"
@@ -257,7 +257,22 @@
                 IsVisible="{Binding BibleInstances.SelectedBookName, Converter={StaticResource NavigationVisibility}}"
                 Grid.Row="1" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <TextBlock FontSize="24" FontWeight="Bold">←</TextBlock>
+                    <Border x:Name="NavigationArrowLeft">
+                        <Interaction.Behaviors>
+                            <EventTriggerBehavior EventName="PointerPressed" SourceObject="NavigationArrowLeft">
+                                <InvokeCommandAction Command="{Binding NavigateChapterCommand}">
+                                    <InvokeCommandAction.CommandParameter>
+                                        <MultiBinding Converter="{StaticResource MultiParamConverter}">
+                                            <Binding Path="BibleInstances.SelectedBookName"/>
+                                            <Binding Path="ToggleState.Pasal"/>
+                                            <Binding Source="left"/>
+                                        </MultiBinding>
+                                    </InvokeCommandAction.CommandParameter>
+                                </InvokeCommandAction>
+                            </EventTriggerBehavior>
+                        </Interaction.Behaviors>
+                        <TextBlock FontSize="24" FontWeight="Bold">←</TextBlock>
+                    </Border>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock FontFamily="{StaticResource Poetsen}"
                                    Text="{Binding BibleInstances.SelectedBookName}" FontSize="20"
@@ -267,7 +282,22 @@
                         <TextBlock FontFamily="{StaticResource Poetsen}" Text="{Binding ToggleState.Pasal}"
                                    FontSize="20" VerticalAlignment="Center" />
                     </StackPanel>
-                    <TextBlock FontSize="24" FontWeight="Bold">→</TextBlock>
+                    <Border x:Name="NavigationArrowRight">
+                        <Interaction.Behaviors>
+                            <EventTriggerBehavior EventName="PointerPressed" SourceObject="NavigationArrowRight">
+                                <InvokeCommandAction Command="{Binding NavigateChapterCommand}">
+                                    <InvokeCommandAction.CommandParameter>
+                                        <MultiBinding Converter="{StaticResource MultiParamConverter}">
+                                            <Binding Path="BibleInstances.SelectedBookName"/>
+                                            <Binding Path="ToggleState.Pasal"/>
+                                            <Binding Source="right"/>
+                                        </MultiBinding>
+                                    </InvokeCommandAction.CommandParameter>
+                                </InvokeCommandAction>
+                            </EventTriggerBehavior>
+                        </Interaction.Behaviors>
+                        <TextBlock FontSize="24" FontWeight="Bold">→</TextBlock>
+                    </Border>
                 </StackPanel>
             </Border>
 

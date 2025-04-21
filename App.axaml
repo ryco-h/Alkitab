@@ -29,5 +29,6 @@
         <utils:IndentationConverter x:Key="IndentationConverter"/>
         <utils:HighlighterConverter x:Key="HighlighterConverter"/>
         <utils:NavigationVisibility x:Key="NavigationVisibility"/>
+        <utils:MultiParamConverter x:Key="MultiParamConverter"/>
     </Application.Resources>
 </Application>

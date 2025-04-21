@@ -59,11 +59,6 @@ public partial class MainWindow : Window
         AvaloniaXamlLoader.Load(this);
     }
 
-    private void OnWindowOpened(object? sender, EventArgs e)
-    {
-        if (DataContext is MainWindowViewModel vm) vm.BibleFiltered += ScrollToAyat;
-    }
-
     private void BibleImage_PointerEnter(object? sender, PointerEventArgs e)
     {
         if (_bibleImage != null)
@@ -128,10 +123,13 @@ public partial class MainWindow : Window
 
     private void ToggleState_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ToggleService.Instance.ToggleState.Ayat))
+        if (e.PropertyName == nameof(ToggleState.Ayat))
         {
-            Task.Delay(2000);
-            ScrollToAyat();
+            Dispatcher.UIThread.Post(async () =>
+            {
+                await Task.Delay(100);
+                ScrollToAyat();
+            });
         }
     }
 
@@ -146,20 +144,18 @@ public partial class MainWindow : Window
             if (vm?.FilteredBible == null) return;
 
             var item = vm.FilteredBible.FirstOrDefault(x => int.Parse(x.verse) == ayatNumber);
-            Console.WriteLine("Item => " + item);
+            Console.WriteLine("Item => " + item.verse);
 
             if (item != null)
             {
-                await Task.Delay(100); 
-
-                _listBox.ScrollIntoView(item); 
-                Dispatcher.UIThread.Post(() => ScrollItemToTop(item), DispatcherPriority.Background);
+                ScrollItemToTop(item);
             }
         }
     }
 
     private void ScrollItemToTop(object? item)
     {
+
         if (item == null)
         {
             Console.WriteLine("[Scroll] Item is null");
@@ -179,7 +175,7 @@ public partial class MainWindow : Window
         }
 
         var index = _listBox.Items.IndexOf(item);
-
+        
         if (index < 0)
         {
             Console.WriteLine("[Scroll] Item not found in ListBox items");

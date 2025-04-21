@@ -51,7 +51,6 @@ public class DatabaseManager
                 "SELECT book_name as BookName, * FROM kitab WHERE book_name='" + bookName + "'"
             );
 
-            Console.WriteLine("Result: " + result);
             return result;
         }
     }
@@ -62,8 +61,10 @@ public class DatabaseManager
         {
             await Task.Run(() => connection.Open());
             var result = await connection.QueryAsync<Kitab>(
-                "SELECT book_name as BookName, * FROM kitab WHERE book_name='" + bookName + "' AND chapter='" +
-                chapter + "'"
+                "SELECT book_name AS BookName, * FROM kitab " +
+                "WHERE book_name = @BookName AND chapter = @Chapter " +
+                "ORDER BY CAST(verse AS INTEGER)",
+                new { BookName = bookName, Chapter = int.Parse(chapter) }
             );
 
             return result;
