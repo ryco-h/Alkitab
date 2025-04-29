@@ -10,7 +10,6 @@ public class IndentationConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is string verse)
-            // Return a Thickness based on whether index is even or odd
             return int.Parse(verse) % 2 == 0 ? new Thickness(40, 5, 5, 5) : new Thickness(5);
 
         return new Thickness(5); // default fallback

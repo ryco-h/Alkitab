@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Alkitab.Models;
 using Alkitab.Services;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 
@@ -14,9 +16,9 @@ public class MainWindowViewModel : ViewModelBase
 {
     public BibleInstances BibleInstances => BibleInstancesService.Instance.BibleInstances;
     public ObservableCollection<BibleInstances> BookList { get; } = new();
-    private IEnumerable<Kitab>? _filteredBible;
+    private ObservableCollection<Kitab>? _filteredBible = new();
 
-    public IEnumerable<Kitab> FilteredBible
+    public ObservableCollection<Kitab>? FilteredBible
     {
         get => _filteredBible;
         set
@@ -27,7 +29,7 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     // DatabaseManager instance
-    private readonly DatabaseManager _databaseManager;
+    public readonly DatabaseManager _databaseManager;
 
     private bool _isLoading;
 
@@ -60,7 +62,7 @@ public class MainWindowViewModel : ViewModelBase
             ToggleState.Pasal = ToggleState.PasalText;
             ToggleState.Ayat = ToggleState.AyatText;
             BibleInstances.SelectedBookName = BibleInstances.BookNameText;
-            await FilterBible(BibleInstances.BookName, ToggleState.Pasal, ToggleState.Ayat);
+            await FilterBible(BibleInstances.BookName, ToggleState.Pasal);
         }
 
         else if (ToggleState.Target == "pasal")
@@ -92,6 +94,9 @@ public class MainWindowViewModel : ViewModelBase
         };
 
         NavigateChapterCommand = ReactiveCommand.Create<object?>(NavigateChapter);
+        ToggleBookmarkCommand = ReactiveCommand.Create<ObservableCollection<Kitab>>(OnToggleBookmark);
+        
+        Console.WriteLine("IsBookmarkEmpty : " +  IsBookmarkEmpty);
 
         var numberStrings = new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "\u2936" };
         foreach (var n in numberStrings) Numbers.Add(new NumberItemViewModel(n, NumberClicked));
@@ -107,12 +112,10 @@ public class MainWindowViewModel : ViewModelBase
 
     public event Action? BibleFiltered;
 
-    private async Task FilterBible(string bookName, string? pasal, string? ayat)
+    public async Task FilterBible(string bookName, string? pasal)
     {
-        FilteredBible = await _databaseManager.FilterBible(bookName, pasal);
-
-        OnPropertyChanged(nameof(FilteredBible));
-        BibleFiltered?.Invoke();
+        Console.WriteLine("Filtering Bible...");
+        await _databaseManager.FilterBible(bookName, pasal, FilteredBible);
 
         IsLoading = false;
         BibleInstances.BookName = "";
@@ -124,6 +127,7 @@ public class MainWindowViewModel : ViewModelBase
     private async void InitializeAsync()
     {
         await LoadBookList();
+        // await GetAllBookmarks();
     }
 
     private async Task LoadBookList()
@@ -137,9 +141,13 @@ public class MainWindowViewModel : ViewModelBase
     
     // ============= Navigation Methods =============
     public ICommand NavigateChapterCommand { get; }
+    public Boolean NavigationMoved { get; set; }
 
     private async void NavigateChapter(object? parameter)
     {
+        IsToolBoxVisible = false;
+        OnPropertyChanged(nameof(IsToolBoxVisible));
+        
         var bookName = parameter?.GetType().GetProperty("BookName")?.GetValue(parameter)?.ToString();
         var pasal = parameter?.GetType().GetProperty("Pasal")?.GetValue(parameter)?.ToString();
         var direction = parameter?.GetType().GetProperty("Direction")?.GetValue(parameter)?.ToString();
@@ -158,26 +166,111 @@ public class MainWindowViewModel : ViewModelBase
         
         if (direction == "left" && chapters.Contains(previous))
         {
-            FilteredBible = await _databaseManager.FilterBible(bookName, previous);
+            await _databaseManager.FilterBible(bookName, previous, FilteredBible);
             ToggleState.Pasal = previous;
-
-            OnPropertyChanged(nameof(FilteredBible));
-            BibleFiltered?.Invoke();
+        } else if (direction == "left" && !chapters.Contains(previous))
+        {
+            var currentIndex = BookList.Select((item, idx) => new { item, idx })
+                .FirstOrDefault(x => x.item.BookName == bookName)?.idx ?? -1;
+            
+            if(currentIndex == 0)
+            
+            await _databaseManager.FilterBible(bookName, previous, FilteredBible);
+            ToggleState.Pasal = previous;
         }
         else if (direction == "right" && chapters.Contains(next))
         {
-            FilteredBible = await _databaseManager.FilterBible(bookName, next);
+            await _databaseManager.FilterBible(bookName, next, FilteredBible);
             ToggleState.Pasal = next;
-
-            OnPropertyChanged(nameof(FilteredBible));
-            BibleFiltered?.Invoke();
-        } else
+        } else if (direction == "right" && !chapters.Contains(next))
         {
-            return;
+            Console.WriteLine("Reaching left max...");
         }
+    }
+    
+    // ============= List Box Methods =============
+    public ICommand SelectionChanged { get; }
+    private ObservableCollection<Kitab> _selectedItems = new ();
+    public ObservableCollection<Kitab> SelectedItems
+    {
+        get => _selectedItems;
+        set
+        {
+            if (_selectedItems != value)
+            {
+                _selectedItems = value;
+                OnPropertyChanged(nameof(SelectedItems));
+            }
+        }
+    }
+    
+    // Using SelectedItems.Count to trigger visibility
+    private bool _isToolBoxVisible;
+    public bool IsToolBoxVisible
+    {
+        get => _isToolBoxVisible;
+        set
+        {
+            if (_isToolBoxVisible != value)
+            {
+                _isToolBoxVisible = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public void OnSelectionChanged(ListBox listBox)
+    {   
+        SelectedItems.Clear();
+        SelectedItems.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(SelectedItems));
+        };
         
-        
-        Console.WriteLine(string.Join(", ", chapters));
-        Console.WriteLine("chapters => " + chapters);
+        foreach (var item in listBox.SelectedItems)
+        {
+            if (item is Kitab kitab)
+            {
+                SelectedItems.Add(kitab);
+                OnPropertyChanged(nameof(SelectedItems));
+                Console.WriteLine($"Verse: {kitab.verse}, Chapter: {kitab.chapter}, Book: {kitab.BookName}");
+            }
+        }
+
+        IsToolBoxVisible = SelectedItems.Count > 0;
+    }
+    
+    // ============= Tool Box Methods =============
+
+    private ObservableCollection<Bookmark>? _bookmark = new();
+
+    public ObservableCollection<Bookmark>? Bookmark
+    {
+        get => _bookmark;
+        set
+        {
+            _bookmark = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsBookmarkEmpty));
+        }
+    }
+    
+    public bool IsBookmarkEmpty => _bookmark == null || _bookmark.Count == 0;
+
+    public ICommand ToggleBookmarkCommand { get; }
+
+    public async void OnToggleBookmark(ObservableCollection<Kitab> parameter)
+    {
+        foreach (var item in parameter)
+        {
+            await _databaseManager.InsertBookmark(item.BookName, item.chapter, item.verse);
+        }
+    }
+
+    public async Task GetAllBookmarks()
+    {
+        await _databaseManager.GetAllBookmarks(Bookmark);
+        OnPropertyChanged(nameof(Bookmark));
+        Console.WriteLine("Bookmark => " + Bookmark);
     }
 }

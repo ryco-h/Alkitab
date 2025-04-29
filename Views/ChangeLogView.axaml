@@ -1,0 +1,58 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Alkitab.Views.ChangeLogView">
+    <ScrollViewer>
+        <TextBlock FontFamily="Consolas"
+                   FontSize="14"
+                   TextWrapping="Wrap">
+            <Run Text="Changelog" />
+
+            <LineBreak />
+            <LineBreak />
+
+            <Run Text="[1.0.2] - 2025-04-23" FontWeight="Bold" />
+            <LineBreak />
+            <Run Text="  • Replaced outer StackPanel with Grid to fix ListBox scroll issue" />
+            <LineBreak />
+            <Run Text="  • Configured Grid.ColumnDefinitions for horizontal layout" />
+            <LineBreak />
+            <Run Text="  • Moved TextBlock beside ListBox (horizontal arrangement)" />
+            <LineBreak />
+            <LineBreak />
+
+            <Run Text="[1.0.1] - 2025-04-23" FontWeight="Bold" />
+            <LineBreak />
+            <Run Text="  • Used StackPanel in ListBox.ItemsPanel to enable text wrapping" />
+            <LineBreak />
+            <Run Text="  • Applied TextWrapping=Wrap to verse TextBlock" />
+            <LineBreak />
+            <LineBreak />
+
+            <Run Text="[1.0.0] - 2025-04-21" FontWeight="Bold" />
+            <LineBreak />
+            <Run Text="  • Initial version with basic ListBox of Bible verses" />
+            <LineBreak />
+            <Run Text="  • SelectionMode set to Multiple, Toggle" />
+
+            <LineBreak />
+            <LineBreak />
+
+            <Run Text="[1.0.1] - 2025-04-23" FontWeight="Bold" />
+            <LineBreak />
+            <Run Text="  • Updated background color of main panel to #474747" />
+            <LineBreak />
+            <Run Text="  • Added drop shadow effect to Border elements" />
+            <LineBreak />
+            <LineBreak />
+
+            <Run Text="[1.0.0] - 2025-04-21" FontWeight="Bold" />
+            <LineBreak />
+            <Run Text="  • Initial release with Avalonia UI" />
+            <LineBreak />
+            <Run Text="  • Number input buttons and relay command support" />
+        </TextBlock>
+    </ScrollViewer>
+</UserControl>

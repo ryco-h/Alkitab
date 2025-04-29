@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+        xmlns:views="clr-namespace:Alkitab.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Alkitab.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -11,7 +12,7 @@
         Background="#474747"
         MinWidth="1024" MinHeight="420"
         Title="Alkitab">
-        <!-- Opened="OnWindowOpened" -->
+    <!-- Opened="OnWindowOpened" -->
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -37,14 +38,33 @@
 
         <!-- Style for selected ListBoxItem -->
         <Style Selector="ListBoxItem:selected">
-            <Setter Property="Background" Value="Gray" />
-            <Setter Property="BorderBrush" Value="Black" />
-            <Setter Property="BorderThickness" Value="2" />
+            <!-- <Setter Property="Background" Value="Gray" /> -->
+            <!-- <Setter Property="BorderBrush" Value="Black" /> -->
+            <!-- <Setter Property="BorderThickness" Value="2" /> -->
         </Style>
 
         <!-- Style for pointerover ListBoxItem -->
         <Style Selector="ListBoxItem:pointerover">
             <Setter Property="Background" Value="Gray" />
+        </Style>
+        
+        <Style Selector="views|ToolBox">
+            <Setter Property="Height" Value="0"></Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Height" Duration="0:0:0.2" Easing="SineEaseIn"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        
+        <Style Selector="Border.ImageButton">
+            <Setter Property="Cursor" Value="Hand"></Setter>
+            <Setter Property="Padding" Value="5"></Setter>
+            <Setter Property="Background" Value="Transparent"></Setter>
+        </Style>
+        
+        <Style Selector="Border.ImageButton:pointerover">
+            <Setter Property="Background" Value="LightGray"></Setter>
         </Style>
     </Window.Styles>
 
@@ -59,7 +79,7 @@
                     Kitab
                 </TextBlock>
                 <TextBlock Text="&#x9;" />
-                
+
                 <AutoCompleteBox
                     FontFamily="{StaticResource Poetsen}"
                     x:Name="autoCompleteBox"
@@ -115,6 +135,7 @@
                         Text="{Binding ToggleState.PasalText}" />
                 </Border>
 
+                <!-- Tab -->
                 <TextBlock Text="&#x9;" />
 
                 <TextBlock
@@ -196,6 +217,10 @@
                 Tutup
             </Button>
         </StackPanel>
+        
+        <StackPanel Background="Transparent" x:Key="ChangeLogView" MinWidth="640" Margin="20">
+            <views:ChangeLogView/>
+        </StackPanel>
     </Window.Resources>
 
     <dialogHost:DialogHost
@@ -232,17 +257,17 @@
                             </Border>
                         </StackPanel>
                     </Border>
-                    
+
                     <!-- Version -->
                     <Border Grid.Column="2">
                         <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontSize="20" FontFamily="{StaticResource Poetsen}">
-                                v1.0
+                                v1.1
                             </TextBlock>
                             <Border>
-                                <Image x:Name="InfoImage"
+                                <Image x:Name="InfoIcon"
                                        Source="/Assets/infoW.png"
                                        Width="40" Height="40"
                                        Cursor="Hand" />
@@ -257,15 +282,15 @@
                 IsVisible="{Binding BibleInstances.SelectedBookName, Converter={StaticResource NavigationVisibility}}"
                 Grid.Row="1" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Border x:Name="NavigationArrowLeft">
+                    <Border Cursor="Hand" x:Name="NavigationArrowLeft">
                         <Interaction.Behaviors>
                             <EventTriggerBehavior EventName="PointerPressed" SourceObject="NavigationArrowLeft">
                                 <InvokeCommandAction Command="{Binding NavigateChapterCommand}">
                                     <InvokeCommandAction.CommandParameter>
                                         <MultiBinding Converter="{StaticResource MultiParamConverter}">
-                                            <Binding Path="BibleInstances.SelectedBookName"/>
-                                            <Binding Path="ToggleState.Pasal"/>
-                                            <Binding Source="left"/>
+                                            <Binding Path="BibleInstances.SelectedBookName" />
+                                            <Binding Path="ToggleState.Pasal" />
+                                            <Binding Source="left" />
                                         </MultiBinding>
                                     </InvokeCommandAction.CommandParameter>
                                 </InvokeCommandAction>
@@ -282,15 +307,15 @@
                         <TextBlock FontFamily="{StaticResource Poetsen}" Text="{Binding ToggleState.Pasal}"
                                    FontSize="20" VerticalAlignment="Center" />
                     </StackPanel>
-                    <Border x:Name="NavigationArrowRight">
+                    <Border Cursor="Hand" x:Name="NavigationArrowRight">
                         <Interaction.Behaviors>
                             <EventTriggerBehavior EventName="PointerPressed" SourceObject="NavigationArrowRight">
                                 <InvokeCommandAction Command="{Binding NavigateChapterCommand}">
                                     <InvokeCommandAction.CommandParameter>
                                         <MultiBinding Converter="{StaticResource MultiParamConverter}">
-                                            <Binding Path="BibleInstances.SelectedBookName"/>
-                                            <Binding Path="ToggleState.Pasal"/>
-                                            <Binding Source="right"/>
+                                            <Binding Path="BibleInstances.SelectedBookName" />
+                                            <Binding Path="ToggleState.Pasal" />
+                                            <Binding Source="right" />
                                         </MultiBinding>
                                     </InvokeCommandAction.CommandParameter>
                                 </InvokeCommandAction>
@@ -301,27 +326,94 @@
                 </StackPanel>
             </Border>
 
-            <ScrollViewer x:Name="BibleScrollViewer" Margin="200 40 120 40" Grid.Row="2"
-                          VerticalScrollBarVisibility="Auto">
-                <ListBox x:Name="ScrollBible" Classes="ScrollBible" Background="Transparent"
-                         ItemsSource="{Binding FilteredBible}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="{Binding verse, Converter={StaticResource IndentationConverter}}">
-                                <Grid ColumnDefinitions="Auto,Auto,*" VerticalAlignment="Bottom">
-                                    <TextBlock Grid.Column="0" FontSize="18" Text="{Binding verse}" />
-                                    <TextBlock Grid.Column="1" FontSize="18" Text=". " />
-                                    <TextBlock Grid.Column="2"
-                                               FontFamily="{StaticResource NationalPark}"
-                                               FontSize="18"
-                                               TextWrapping="Wrap"
-                                               Text="{Binding text}" />
-                                </Grid>
+            <Grid Grid.Row="2" ColumnDefinitions="*, Auto">
+                <!-- Why use ScrollViewer when it already uses ListBox? -->
+                <!-- The ScrollViewer enables the action of scroll to the index and make sure of it to be at the top of the list view -->
+                <ScrollViewer x:Name="BibleScrollViewer"  Margin="100 40 50 40" Grid.Column="0"
+                              VerticalScrollBarVisibility="Auto">
+                    <ListBox SelectionChanged="ScrollBible_OnSelectionChanged" SelectionMode="Multiple, Toggle"
+                             x:Name="ScrollBible"
+                             Classes="ScrollBible" Background="Transparent"
+                             ItemsSource="{Binding FilteredBible}">
+
+                        <!-- Disables virtualization, StackPanel lets each item grow as tall as it needs, so text can wrap naturally  -->
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="10 0 0 0">
+                                    <Grid ColumnDefinitions="Auto,Auto,*" VerticalAlignment="Bottom">
+                                        <TextBlock Grid.Column="0" FontSize="18" Text="{Binding verse}" />
+                                        <TextBlock Grid.Column="1" FontSize="18" Text=". " />
+                                        <TextBlock Grid.Column="2"
+                                                   FontFamily="{StaticResource NationalPark}"
+                                                   FontSize="18"
+                                                   TextWrapping="Wrap"
+                                                   Text="{Binding text}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </ScrollViewer>
+
+                <Border VerticalAlignment="Top" Grid.Column="1"
+                        Width="400" Height="300"
+                        Background="#5A5A5A" CornerRadius="10" Margin="20">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Black"
+                                          BlurRadius="8"
+                                          Opacity="0.4" />
+                    </Border.Effect>
+                    <Grid RowDefinitions="Auto, *">
+                        <views:ToolBox Padding="20 20 20 0" Grid.Row="0" Height="{Binding IsToolBoxVisible, Converter={StaticResource ToolBoxConverter}}"/>
+                        
+                        <!-- <views:ChangeLogView Padding="20" Grid.Row="1"/> -->
+                        <Grid Grid.Row="1">
+                            <Border Padding="20">
+                                <StackPanel Orientation="Vertical">
+                                    <Border PointerPressed="BookmarkPanel_OnPointerPressed" Classes="ImageButton">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <Border x:Name="BookmarkButton">
+                                                <Image x:Name="BookmarkIcon"
+                                                       Source="/Assets/bookmark-white.png"
+                                                       Width="26"/>
+                                            </Border>
+                                            <TextBlock VerticalAlignment="Center" FontWeight="Light" FontFamily="{StaticResource Poetsen}"
+                                                       FontSize="14">Lihat Pembatas Buku</TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                    
+                                    <Border Classes="ImageButton">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <Border >
+                                                <Image Source="/Assets/highlight-white.png"
+                                                       Width="26"/>
+                                            </Border>
+                                            <TextBlock VerticalAlignment="Center" FontWeight="Light" FontFamily="{StaticResource Poetsen}"
+                                                       FontSize="14">Lihat Daftar Sorotan</TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
                             </Border>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </ScrollViewer>
+                            
+                            <Border x:Name="OverlayPanel"
+                                    Background="Gray"
+                                    Opacity="0.4"
+                                    IsVisible="{Binding IsToolBoxVisible, Converter={StaticResource ToolBoxConverter}}"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    ZIndex="999">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
         </Grid>
     </dialogHost:DialogHost>
 

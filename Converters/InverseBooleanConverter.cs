@@ -9,12 +9,12 @@ public class InverseBooleanConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is bool booleanValue)
-            return !booleanValue; // Invert the boolean value
+            return !booleanValue;
 
-        return null; // Ensure compatibility with nullability
+        return null;
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
     }

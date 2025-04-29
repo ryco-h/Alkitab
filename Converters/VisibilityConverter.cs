@@ -9,7 +9,6 @@ public class VisibilityConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var bookName = value as string;
-        Console.WriteLine("BookName: " + bookName);
         return !string.IsNullOrEmpty(bookName);
     }
 
